@@ -6,20 +6,7 @@
 #include <queue>
 #include <functional>
 
-struct CommandView {
-    std::string name;
-    std::vector<uint8_t> data;
-
-    CommandView() {}
-    CommandView(std::string name, std::vector<uint8_t>::iterator begin, std::vector<uint8_t>::iterator end);
-};
-
-struct Buffer {
-    std::vector<uint8_t> data;
-    int size{0};
-
-    Buffer(int capacity) { data.reserve(capacity); }
-};
+#include "CommandRelated.h"
 
 class Pattern {
     int len{1};

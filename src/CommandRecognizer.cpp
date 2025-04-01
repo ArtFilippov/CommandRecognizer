@@ -1,8 +1,5 @@
 #include "CommandRecognizer.h"
 
-CommandView::CommandView(std::string name, std::vector<uint8_t>::iterator begin, std::vector<uint8_t>::iterator end)
-    : name(name), data(begin, end) {}
-
 Pattern::Pattern(std::string name, uint8_t adr, int len,
                  std::function<bool(std::vector<uint8_t>::iterator, std::vector<uint8_t>::iterator)> patternMatcher)
     : name(name), adr(adr), len(len), patternMatcher(patternMatcher) {}
