@@ -10,8 +10,6 @@
 
 class PatternMatcher : public IPatternMatcher {
 
-  public:
-  private:
     std::map<uint8_t, std::vector<pattern_ptr>> patterns;
 
     std::map<uint8_t, std::vector<pattern_ptr>>::iterator currentPatternSet;
@@ -25,8 +23,6 @@ class PatternMatcher : public IPatternMatcher {
     std::queue<CommandView> recognized;
 
   public:
-    static const int MAX_BUFFER_SIZE = 256;
-
     void addPattern(pattern_ptr pattern) override { patterns[pattern->getHeader()].push_back(std::move(pattern)); }
 
     bool getCommand(CommandView &command) override;
