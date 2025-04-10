@@ -1,6 +1,5 @@
 #pragma once
 
-#include <optional>
 #include <cstdint>
 #include <memory>
 #include <set>
@@ -18,6 +17,8 @@ class PatternMatcher {
         std::string name;
 
       public:
+        enum status { MATCHED, FAILED, NOT_COMPLETED };
+
         Pattern(uint8_t header, const std::string name) : header(header), name(name) {}
 
         virtual ~Pattern() = default;
@@ -26,7 +27,7 @@ class PatternMatcher {
 
         virtual const std::string &getName() { return name; }
 
-        virtual std::optional<bool> add(uint8_t) = 0;
+        virtual status add(uint8_t) = 0;
 
         virtual void reset() = 0;
     };
@@ -53,17 +54,20 @@ class PatternMatcher {
 
     bool getCommand(CommandView &command);
 
-    void fillActivePatternsWithCurrentSet();
-
-    std::optional<bool> checkActivePatterns(uint8_t);
-
-    bool gotoNextHeader();
-
-    bool findHeaderInSegment(std::vector<uint8_t>::iterator &begin, std::vector<uint8_t>::iterator &end);
-
     void resetAll();
+
+    PatternMatcher &operator<<(Buffer &segment);
+
+  private:
+    enum find_header_status { HEADER_FOUND, HEADER_NOT_FOUND };
 
     void resetBuffer();
 
-    PatternMatcher &operator<<(Buffer &segment);
+    void fillActivePatternsWithCurrentSet();
+
+    Pattern::status checkActivePatterns(uint8_t);
+
+    find_header_status gotoNextHeader();
+
+    find_header_status findHeaderInSegment(std::vector<uint8_t>::iterator &begin, std::vector<uint8_t>::iterator &end);
 };

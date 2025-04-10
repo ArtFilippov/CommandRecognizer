@@ -10,19 +10,20 @@ bool PatternMatcher::getCommand(CommandView &command) {
     }
 }
 
-bool PatternMatcher::findHeaderInSegment(std::vector<uint8_t>::iterator &begin, std::vector<uint8_t>::iterator &end) {
+PatternMatcher::find_header_status PatternMatcher::findHeaderInSegment(std::vector<uint8_t>::iterator &begin,
+                                                                       std::vector<uint8_t>::iterator &end) {
     while (begin < end) {
         currentPatternSet = patterns.find(*begin);
 
         if (currentPatternSet != patterns.end()) {
             fillActivePatternsWithCurrentSet();
-            return true;
+            return HEADER_FOUND;
         } else {
             ++begin;
         }
     }
 
-    return false;
+    return HEADER_NOT_FOUND;
 }
 
 PatternMatcher &PatternMatcher::operator<<(Buffer &segment) {
@@ -31,7 +32,7 @@ PatternMatcher &PatternMatcher::operator<<(Buffer &segment) {
     auto end = begin + segment.size;
 
     while (begin < end) {
-        if (activePatterns.empty() && findHeaderInSegment(begin, end) == false) {
+        if (activePatterns.empty() && findHeaderInSegment(begin, end) == HEADER_NOT_FOUND) {
             return *this;
         }
 
@@ -39,12 +40,10 @@ PatternMatcher &PatternMatcher::operator<<(Buffer &segment) {
 
         auto verdict = checkActivePatterns(*begin);
 
-        if (verdict.has_value() && verdict.value() == true) {
+        if (verdict == Pattern::status::MATCHED) {
             resetAll();
-        }
-
-        if (verdict.has_value() && verdict.value() == false) {
-            if (gotoNextHeader() == false) {
+        } else if (verdict == Pattern::status::FAILED) {
+            if (gotoNextHeader() == HEADER_NOT_FOUND) {
                 resetBuffer();
             }
         }
@@ -55,7 +54,7 @@ PatternMatcher &PatternMatcher::operator<<(Buffer &segment) {
     return *this;
 }
 
-bool PatternMatcher::gotoNextHeader() {
+PatternMatcher::find_header_status PatternMatcher::gotoNextHeader() {
 
     bool isPatternFinished = true;
 
@@ -63,21 +62,21 @@ bool PatternMatcher::gotoNextHeader() {
         auto new_begin = buffer.begin() + commandStartPosition;
         auto end = buffer.end();
 
-        bool isFound = findHeaderInSegment(new_begin, end);
+        auto isFound = findHeaderInSegment(new_begin, end);
 
         commandStartPosition = std::distance(buffer.begin(), new_begin);
 
-        if (isFound) {
+        if (isFound == HEADER_FOUND) {
             for (int i = commandStartPosition; i < (int) buffer.size(); ++i) {
                 auto verdict = checkActivePatterns(buffer[i]);
 
-                if (verdict.has_value() && verdict.value() == true) {
+                if (verdict == Pattern::status::MATCHED) {
                     isPatternFinished = true;
                     commandStartPosition = i + 1;
                     break;
                 }
 
-                if (verdict.has_value() && verdict.value() == false) {
+                if (verdict == Pattern::status::FAILED) {
                     isPatternFinished = true;
                     ++commandStartPosition;
                     break;
@@ -87,39 +86,37 @@ bool PatternMatcher::gotoNextHeader() {
             }
 
             if (isPatternFinished == false) {
-                return true;
+                return HEADER_FOUND;
             }
+        } else {
+            return HEADER_NOT_FOUND;
         }
     }
 
-    return false;
+    return HEADER_NOT_FOUND;
 }
 
-std::optional<bool> PatternMatcher::checkActivePatterns(uint8_t new_byte) {
+PatternMatcher::Pattern::status PatternMatcher::checkActivePatterns(uint8_t new_byte) {
     for (auto it = activePatterns.begin(); it != activePatterns.end();) {
-        auto verdict = currentPatternSet->second.at(*it)->add(new_byte);
+        auto &pattern = currentPatternSet->second.at(*it);
+        auto verdict = pattern->add(new_byte);
 
-        if (verdict.has_value()) {
-            if (verdict.value()) {
-                recognized.emplace(currentPatternSet->second.at(*it)->getName(), buffer.begin() + commandStartPosition,
-                                   buffer.end());
-
-                return {true};
-            } else {
-                currentPatternSet->second.at(*it)->reset();
-
-                it = activePatterns.erase(it);
-            }
-        } else {
+        if (verdict == Pattern::status::NOT_COMPLETED) {
             ++it;
+        } else if (verdict == Pattern::status::MATCHED) {
+            recognized.emplace(pattern->getName(), buffer.begin() + commandStartPosition, buffer.end());
+            return Pattern::status::MATCHED;
+        } else {
+            pattern->reset();
+            it = activePatterns.erase(it);
         }
     }
 
     if (activePatterns.empty()) {
-        return {false};
+        return Pattern::status::FAILED;
     }
 
-    return {};
+    return Pattern::status::NOT_COMPLETED;
 }
 
 void PatternMatcher::fillActivePatternsWithCurrentSet() {
