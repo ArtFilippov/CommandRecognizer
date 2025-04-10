@@ -6,34 +6,11 @@
 #include <map>
 #include <queue>
 
-#include "CommandRelated.h"
+#include "IPatternMatcher.h"
 
-class PatternMatcher {
+class PatternMatcher : public IPatternMatcher {
 
   public:
-    class Pattern {
-      protected:
-        uint8_t header;
-        std::string name;
-
-      public:
-        enum status { MATCHED, FAILED, NOT_COMPLETED };
-
-        Pattern(uint8_t header, const std::string name) : header(header), name(name) {}
-
-        virtual ~Pattern() = default;
-
-        virtual uint8_t getHeader() { return header; }
-
-        virtual const std::string &getName() { return name; }
-
-        virtual status add(uint8_t) = 0;
-
-        virtual void reset() = 0;
-    };
-
-    using pattern_ptr = std::unique_ptr<Pattern>;
-
   private:
     std::map<uint8_t, std::vector<pattern_ptr>> patterns;
 
@@ -50,13 +27,13 @@ class PatternMatcher {
   public:
     static const int MAX_BUFFER_SIZE = 256;
 
-    void addPattern(pattern_ptr pattern) { patterns[pattern->getHeader()].push_back(std::move(pattern)); }
+    void addPattern(pattern_ptr pattern) override { patterns[pattern->getHeader()].push_back(std::move(pattern)); }
 
-    bool getCommand(CommandView &command);
+    bool getCommand(CommandView &command) override;
 
-    void resetAll();
+    void reset() override;
 
-    PatternMatcher &operator<<(Buffer &segment);
+    IPatternMatcher &operator<<(Buffer &segment) override;
 
   private:
     enum find_header_status { HEADER_FOUND, HEADER_NOT_FOUND };

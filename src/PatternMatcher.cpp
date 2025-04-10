@@ -26,7 +26,7 @@ PatternMatcher::find_header_status PatternMatcher::findHeaderInSegment(std::vect
     return HEADER_NOT_FOUND;
 }
 
-PatternMatcher &PatternMatcher::operator<<(Buffer &segment) {
+IPatternMatcher &PatternMatcher::operator<<(Buffer &segment) {
 
     auto begin = segment.data.begin();
     auto end = begin + segment.size;
@@ -41,7 +41,7 @@ PatternMatcher &PatternMatcher::operator<<(Buffer &segment) {
         auto verdict = checkActivePatterns(*begin);
 
         if (verdict == Pattern::status::MATCHED) {
-            resetAll();
+            reset();
         } else if (verdict == Pattern::status::FAILED) {
             if (gotoNextHeader() == HEADER_NOT_FOUND) {
                 resetBuffer();
@@ -130,7 +130,7 @@ void PatternMatcher::resetBuffer() {
     commandStartPosition = 0;
 }
 
-void PatternMatcher::resetAll() {
+void PatternMatcher::reset() {
     resetBuffer();
 
     if (currentPatternSet != patterns.end()) {
