@@ -38,5 +38,5 @@ class IPatternMatcher {
 
     virtual void reset() = 0;
 
-    virtual IPatternMatcher &operator<<(Buffer &segment) = 0;
+    virtual IPatternMatcher &operator<<(common::Buffer &segment) = 0;
 };

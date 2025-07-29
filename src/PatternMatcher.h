@@ -29,7 +29,7 @@ class PatternMatcher : public IPatternMatcher {
 
     void reset() override;
 
-    IPatternMatcher &operator<<(Buffer &segment) override;
+    IPatternMatcher &operator<<(common::Buffer &segment) override;
 
   private:
     enum find_header_status { HEADER_FOUND, HEADER_NOT_FOUND };

@@ -46,7 +46,7 @@ class CommandRecognizer {
 
     bool getCommand(CommandView &command);
 
-    CommandRecognizer &operator<<(Buffer &message);
+    CommandRecognizer &operator<<(common::Buffer &message);
 
     void addPattern(Pattern &&pattern);
 

@@ -23,7 +23,7 @@ bool CommandRecognizer::getCommand(CommandView &command) {
     }
 }
 
-CommandRecognizer &CommandRecognizer::operator<<(Buffer &message) {
+CommandRecognizer &CommandRecognizer::operator<<(common::Buffer &message) {
     auto begin = message.data.begin();
     auto end = begin + message.size;
 

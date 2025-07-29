@@ -26,7 +26,7 @@ PatternMatcher::find_header_status PatternMatcher::findHeaderInSegment(std::vect
     return HEADER_NOT_FOUND;
 }
 
-IPatternMatcher &PatternMatcher::operator<<(Buffer &segment) {
+IPatternMatcher &PatternMatcher::operator<<(common::Buffer &segment) {
 
     auto begin = segment.data.begin();
     auto end = begin + segment.size;
