@@ -6,7 +6,7 @@
 #include <queue>
 #include <functional>
 
-#include "CommandRelated.h"
+#include "LiftUnitCommonInterfaces/CommandRecognizer/CommandRelated.h"
 
 class Pattern {
     int len{1};

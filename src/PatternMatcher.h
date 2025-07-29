@@ -6,7 +6,7 @@
 #include <map>
 #include <queue>
 
-#include "IPatternMatcher.h"
+#include "LiftUnitCommonInterfaces/CommandRecognizer/IPatternMatcher.h"
 
 class PatternMatcher : public IPatternMatcher {
 
