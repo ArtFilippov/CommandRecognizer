@@ -23,9 +23,9 @@ bool CommandRecognizer::getCommand(CommandView &command) {
     }
 }
 
-CommandRecognizer &CommandRecognizer::operator<<(common::Buffer &message) {
-    auto begin = message.data.begin();
-    auto end = begin + message.size;
+CommandRecognizer &CommandRecognizer::operator<<(const std::vector<uint8_t> &message) {
+    auto begin = message.cbegin();
+    auto end = message.cend();
 
     while (begin < end ||
            (!currentPatternName.empty() && (buffer.size() >= (currentPatternLength + commandStartPosition)))) {
@@ -94,7 +94,8 @@ void CommandRecognizer::resetBuffer() {
     }
 }
 
-bool CommandRecognizer::startNewPattern(std::vector<uint8_t>::iterator &begin, std::vector<uint8_t>::iterator &end) {
+bool CommandRecognizer::startNewPattern(std::vector<uint8_t>::const_iterator &begin,
+                                        std::vector<uint8_t>::const_iterator &end) {
 
     while (begin < end && patternMatchers.find(*begin) == patternMatchers.end()) {
 
@@ -151,8 +152,8 @@ void CommandRecognizer::startNewPatternFromBuffer() {
         return;
     }
 
-    auto commandStartIterator = buffer.begin() + commandStartPosition;
-    auto endOfBuffer = buffer.end();
+    auto commandStartIterator = buffer.cbegin() + commandStartPosition;
+    auto endOfBuffer = buffer.cend();
 
     auto beginNewCommand = commandStartIterator;
 

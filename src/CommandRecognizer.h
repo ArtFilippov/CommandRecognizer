@@ -46,14 +46,14 @@ class CommandRecognizer {
 
     bool getCommand(CommandView &command);
 
-    CommandRecognizer &operator<<(common::Buffer &message);
+    CommandRecognizer &operator<<(const std::vector<uint8_t> &message);
 
     void addPattern(Pattern &&pattern);
 
   private:
     void resetBuffer();
 
-    bool startNewPattern(std::vector<uint8_t>::iterator &begin, std::vector<uint8_t>::iterator &end);
+    bool startNewPattern(std::vector<uint8_t>::const_iterator &begin, std::vector<uint8_t>::const_iterator &end);
 
     bool checkBuffer();
 

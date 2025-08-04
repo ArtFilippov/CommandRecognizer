@@ -10,8 +10,8 @@ bool PatternMatcher::getCommand(CommandView &command) {
     }
 }
 
-PatternMatcher::find_header_status PatternMatcher::findHeaderInSegment(std::vector<uint8_t>::iterator &begin,
-                                                                       std::vector<uint8_t>::iterator &end) {
+PatternMatcher::find_header_status PatternMatcher::findHeaderInSegment(std::vector<uint8_t>::const_iterator &begin,
+                                                                       std::vector<uint8_t>::const_iterator &end) {
     while (begin < end) {
         currentPatternSet = patterns.find(*begin);
 
@@ -26,10 +26,10 @@ PatternMatcher::find_header_status PatternMatcher::findHeaderInSegment(std::vect
     return HEADER_NOT_FOUND;
 }
 
-IPatternMatcher &PatternMatcher::operator<<(common::Buffer &segment) {
+IPatternMatcher &PatternMatcher::operator<<(const std::vector<uint8_t> &segment) {
 
-    auto begin = segment.data.begin();
-    auto end = begin + segment.size;
+    auto begin = segment.begin();
+    auto end = segment.end();
 
     while (begin < end) {
         if (activePatterns.empty() && findHeaderInSegment(begin, end) == HEADER_NOT_FOUND) {
@@ -59,12 +59,12 @@ PatternMatcher::find_header_status PatternMatcher::gotoNextHeader() {
     bool isPatternFinished = true;
 
     while (commandStartPosition < buffer.size()) {
-        auto new_begin = buffer.begin() + commandStartPosition;
-        auto end = buffer.end();
+        auto new_begin = buffer.cbegin() + commandStartPosition;
+        auto end = buffer.cend();
 
         auto isFound = findHeaderInSegment(new_begin, end);
 
-        commandStartPosition = std::distance(buffer.begin(), new_begin);
+        commandStartPosition = std::distance(buffer.cbegin(), new_begin);
 
         if (isFound == HEADER_FOUND) {
             for (int i = commandStartPosition; i < (int) buffer.size(); ++i) {

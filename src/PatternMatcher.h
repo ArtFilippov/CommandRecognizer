@@ -29,7 +29,7 @@ class PatternMatcher : public IPatternMatcher {
 
     void reset() override;
 
-    IPatternMatcher &operator<<(common::Buffer &segment) override;
+    IPatternMatcher &operator<<(const std::vector<uint8_t> &segment) override;
 
   private:
     enum find_header_status { HEADER_FOUND, HEADER_NOT_FOUND };
@@ -42,5 +42,6 @@ class PatternMatcher : public IPatternMatcher {
 
     find_header_status gotoNextHeader();
 
-    find_header_status findHeaderInSegment(std::vector<uint8_t>::iterator &begin, std::vector<uint8_t>::iterator &end);
+    find_header_status findHeaderInSegment(std::vector<uint8_t>::const_iterator &begin,
+                                           std::vector<uint8_t>::const_iterator &end);
 };
