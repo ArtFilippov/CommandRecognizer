@@ -1,3 +1,3 @@
 get_filename_component(SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-include(${SELF_DIR}/commandRecognizer.cmake)
+include(${SELF_DIR}/patterns.cmake)
