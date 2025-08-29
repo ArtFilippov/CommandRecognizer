@@ -19,9 +19,14 @@ class patterns::SingleHeaderPatterns : public Pattern {
   public:
     SingleHeaderPatterns(uint8_t header, std::string name, std::vector<std::shared_ptr<Pattern>> patterns);
 
+    std::string name() override;
+
     status proccess(uint8_t newByte) override;
 
     std::optional<std::size_t> len() override;
 
     void reset() override;
+
+  private:
+    void resetExceptOne(std::size_t idx);
 };

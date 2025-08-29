@@ -16,6 +16,14 @@ SingleHeaderPatterns::SingleHeaderPatterns(uint8_t header_, std::string name_,
     }
 }
 
+std::string SingleHeaderPatterns::name() {
+    if (active.size() == 1) {
+        return Pattern::name() + patterns[*active.begin()]->name();
+    }
+
+    return Pattern::name();
+}
+
 Pattern::status SingleHeaderPatterns::proccess(uint8_t newByte) {
     if (step == automaton::WAIT_HEADER) {
         if (newByte == header()) {
@@ -34,9 +42,7 @@ Pattern::status SingleHeaderPatterns::proccess(uint8_t newByte) {
             patterns[*it]->reset();
             it = active.erase(it);
         } else if (res == status::MATCHED || res == status::MATCHED_STEP_BEFORE) {
-            auto idx = *it;
-            active.clear();
-            active.insert(idx);
+            resetExceptOne(*it);
             return res;
         }
         ++it;
@@ -65,4 +71,13 @@ void SingleHeaderPatterns::reset() {
     }
 
     active.clear();
+}
+
+void SingleHeaderPatterns::resetExceptOne(std::size_t oneIdx) {
+    for (auto idx : active) {
+        if (idx != oneIdx) {
+            patterns[idx]->reset();
+            active.erase(idx);
+        }
+    }
 }

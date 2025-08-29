@@ -22,7 +22,7 @@ class patterns::Pattern {
 
     virtual uint8_t header() { return header_; }
 
-    virtual const std::string &name() { return name_; }
+    virtual std::string name() { return name_; }
 
     virtual status proccess(uint8_t newByte) = 0;
 
