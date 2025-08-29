@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <optional>
 
 namespace patterns {
 class Pattern;
@@ -9,7 +10,6 @@ class Pattern;
 }
 
 class patterns::Pattern {
-  protected:
     uint8_t header_;
     std::string name_;
 
@@ -26,7 +26,7 @@ class patterns::Pattern {
 
     virtual status proccess(uint8_t newByte) = 0;
 
-    virtual std::size_t len() = 0;
+    virtual std::optional<std::size_t> len() = 0;
 
     virtual void reset() = 0;
 };

@@ -24,6 +24,8 @@ IPatternMatcher &PatternMatcher::operator<<(const std::vector<uint8_t> &segment)
     for (auto byte : segment) {
         proccess(byte);
     }
+
+    return *this;
 }
 
 void PatternMatcher::proccess(uint8_t byte) {
@@ -33,16 +35,18 @@ void PatternMatcher::proccess(uint8_t byte) {
         reset();
     } else if (res == Pattern::status::MATCHED) {
         buffer.push_back(byte);
-        if (pattern->len() > buffer.size()) {
+        auto len = pattern->len();
+        if (len.value_or(SIZE_MAX) > buffer.size()) {
             throw std::logic_error{"Your pattern len is incorrect"};
         }
-        recognized.push(Package{pattern->name(), buffer.end() - pattern->len(), buffer.end()});
+        recognized.push(Package{pattern->name(), buffer.end() - len.value(), buffer.end()});
         reset();
     } else if (res == Pattern::status::MATCHED_STEP_BEFORE) {
-        if (buffer.empty()) {
+        auto len = pattern->len();
+        if (len.value_or(0) == 0 || buffer.empty()) {
             throw std::logic_error{"Your pattern MATCHED_STEP_BEFORE with no data"};
         }
-        recognized.push(Package{pattern->name(), buffer.end() - pattern->len(), buffer.end()});
+        recognized.push(Package{pattern->name(), buffer.end() - len.value(), buffer.end()});
         reset();
         proccess(byte);
     } else {
