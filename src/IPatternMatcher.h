@@ -1,42 +1,27 @@
 #pragma once
 
-#include "CommandRelated.h"
-
 #include <cstdint>
 #include <memory>
+#include <optional>
+#include "common/common.h"
+
+namespace patterns {
+struct Package {
+    std::string name;
+    std::vector<uint8_t> data;
+
+    Package(std::string name, std::vector<uint8_t>::iterator begin, std::vector<uint8_t>::iterator end)
+        : name(name), data(begin, end) {}
+};
 
 class IPatternMatcher {
   public:
-    class Pattern {
-      protected:
-        uint8_t header;
-        std::string name;
-
-      public:
-        enum status { MATCHED, FAILED, NOT_COMPLETED };
-
-        Pattern(uint8_t header, const std::string name) : header(header), name(name) {}
-
-        virtual ~Pattern() = default;
-
-        virtual uint8_t getHeader() { return header; }
-
-        virtual const std::string &getName() { return name; }
-
-        virtual status add(uint8_t) = 0;
-
-        virtual void reset() = 0;
-    };
-
-    using pattern_ptr = std::unique_ptr<Pattern>;
-
     virtual ~IPatternMatcher() = default;
 
-    virtual void addPattern(pattern_ptr pattern) = 0;
-
-    virtual bool getCommand(CommandView &command) = 0;
+    virtual std::optional<Package> package() = 0;
 
     virtual void reset() = 0;
 
     virtual IPatternMatcher &operator<<(const std::vector<uint8_t> &segment) = 0;
 };
+} // namespace patterns

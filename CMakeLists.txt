@@ -8,13 +8,13 @@ include_directories(${CMAKE_PREFIX_PATH})
 
 find_package(common)
 
-project(COMMAND_RECOGNIZER CXX)
+project(PATTERNS CXX)
 
-set(include_dest "commandRecognizer")
-set(main_lib_dest "commandRecognizer/lib/commandRecognizer")
+set(include_dest "patterns")
+set(main_lib_dest "patterns/lib/patterns")
 
 
-install(FILES commandRecognizer-config.cmake DESTINATION ${main_lib_dest})
-install(EXPORT commandRecognizer DESTINATION "${main_lib_dest}")
+install(FILES patterns-config.cmake DESTINATION ${main_lib_dest})
+install(EXPORT patterns DESTINATION "${main_lib_dest}")
 
 add_subdirectory(src)

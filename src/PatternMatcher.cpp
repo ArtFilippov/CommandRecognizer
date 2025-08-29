@@ -1,145 +1,51 @@
 #include "PatternMatcher.h"
 
-bool PatternMatcher::getCommand(CommandView &command) {
+using namespace patterns;
+
+PatternMatcher::PatternMatcher(std::shared_ptr<Pattern> pattern) : pattern(pattern) {}
+
+std::optional<Package> PatternMatcher::package() {
     if (recognized.empty()) {
-        return false;
-    } else {
-        command = recognized.front();
-        recognized.pop();
-        return true;
-    }
-}
-
-PatternMatcher::find_header_status PatternMatcher::findHeaderInSegment(std::vector<uint8_t>::const_iterator &begin,
-                                                                       std::vector<uint8_t>::const_iterator &end) {
-    while (begin < end) {
-        currentPatternSet = patterns.find(*begin);
-
-        if (currentPatternSet != patterns.end()) {
-            fillActivePatternsWithCurrentSet();
-            return HEADER_FOUND;
-        } else {
-            ++begin;
-        }
+        return {};
     }
 
-    return HEADER_NOT_FOUND;
-}
+    auto pkg = recognized.front();
+    recognized.pop();
 
-IPatternMatcher &PatternMatcher::operator<<(const std::vector<uint8_t> &segment) {
-
-    auto begin = segment.begin();
-    auto end = segment.end();
-
-    while (begin < end) {
-        if (activePatterns.empty() && findHeaderInSegment(begin, end) == HEADER_NOT_FOUND) {
-            return *this;
-        }
-
-        buffer.push_back(*begin);
-
-        auto verdict = checkActivePatterns(*begin);
-
-        if (verdict == Pattern::status::MATCHED) {
-            reset();
-        } else if (verdict == Pattern::status::FAILED) {
-            if (gotoNextHeader() == HEADER_NOT_FOUND) {
-                resetBuffer();
-            }
-        }
-
-        ++begin;
-    }
-
-    return *this;
-}
-
-PatternMatcher::find_header_status PatternMatcher::gotoNextHeader() {
-
-    bool isPatternFinished = true;
-
-    while (commandStartPosition < buffer.size()) {
-        auto new_begin = buffer.cbegin() + commandStartPosition;
-        auto end = buffer.cend();
-
-        auto isFound = findHeaderInSegment(new_begin, end);
-
-        commandStartPosition = std::distance(buffer.cbegin(), new_begin);
-
-        if (isFound == HEADER_FOUND) {
-            for (int i = commandStartPosition; i < (int) buffer.size(); ++i) {
-                auto verdict = checkActivePatterns(buffer[i]);
-
-                if (verdict == Pattern::status::MATCHED) {
-                    isPatternFinished = true;
-                    commandStartPosition = i + 1;
-                    break;
-                }
-
-                if (verdict == Pattern::status::FAILED) {
-                    isPatternFinished = true;
-                    ++commandStartPosition;
-                    break;
-                }
-
-                isPatternFinished = false;
-            }
-
-            if (isPatternFinished == false) {
-                return HEADER_FOUND;
-            }
-        } else {
-            return HEADER_NOT_FOUND;
-        }
-    }
-
-    return HEADER_NOT_FOUND;
-}
-
-PatternMatcher::Pattern::status PatternMatcher::checkActivePatterns(uint8_t new_byte) {
-    for (auto it = activePatterns.begin(); it != activePatterns.end();) {
-        auto &pattern = currentPatternSet->second.at(*it);
-        auto verdict = pattern->add(new_byte);
-
-        if (verdict == Pattern::status::NOT_COMPLETED) {
-            ++it;
-        } else if (verdict == Pattern::status::MATCHED) {
-            recognized.emplace(pattern->getName(), buffer.begin() + commandStartPosition, buffer.end());
-            return Pattern::status::MATCHED;
-        } else {
-            pattern->reset();
-            it = activePatterns.erase(it);
-        }
-    }
-
-    if (activePatterns.empty()) {
-        return Pattern::status::FAILED;
-    }
-
-    return Pattern::status::NOT_COMPLETED;
-}
-
-void PatternMatcher::fillActivePatternsWithCurrentSet() {
-    for (int i = 0; i < (int) currentPatternSet->second.size(); ++i) {
-        activePatterns.insert(i);
-    }
-}
-
-void PatternMatcher::resetBuffer() {
-    buffer.clear();
-    commandStartPosition = 0;
+    return pkg;
 }
 
 void PatternMatcher::reset() {
-    resetBuffer();
+    buffer.clear();
+    pattern->reset();
+}
 
-    if (currentPatternSet != patterns.end()) {
-        for (auto i : activePatterns) {
-            currentPatternSet->second.at(i)->reset();
-        }
-
-        currentPatternSet = patterns.end();
+IPatternMatcher &PatternMatcher::operator<<(const std::vector<uint8_t> &segment) {
+    for (auto byte : segment) {
+        proccess(byte);
     }
+}
 
-    activePatterns.clear();
+void PatternMatcher::proccess(uint8_t byte) {
+    auto res = pattern->proccess(byte);
+
+    if (res == Pattern::status::FAILED) {
+        reset();
+    } else if (res == Pattern::status::MATCHED) {
+        buffer.push_back(byte);
+        if (pattern->len() > buffer.size()) {
+            throw std::logic_error{"Your pattern len is incorrect"};
+        }
+        recognized.push(Package{pattern->name(), buffer.end() - pattern->len(), buffer.end()});
+        reset();
+    } else if (res == Pattern::status::MATCHED_STEP_BEFORE) {
+        if (buffer.empty()) {
+            throw std::logic_error{"Your pattern MATCHED_STEP_BEFORE with no data"};
+        }
+        recognized.push(Package{pattern->name(), buffer.end() - pattern->len(), buffer.end()});
+        reset();
+        proccess(byte);
+    } else {
+        buffer.push_back(byte);
+    }
 }

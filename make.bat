@@ -6,8 +6,8 @@ if not exist %workspaceDirectory%\common\ (
 )
 
 
-if exist %workspaceDirectory%\commandRecognizer\ (
-    RD /S "%workspaceDirectory%\commandRecognizer"
+if exist %workspaceDirectory%\patterns\ (
+    RD /S "%workspaceDirectory%\patterns"
 )
 
 if exist %~dp0build\ (

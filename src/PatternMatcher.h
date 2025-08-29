@@ -1,47 +1,31 @@
 #pragma once
 
-#include <cstdint>
-#include <memory>
-#include <set>
-#include <map>
+#include "IPatternMatcher.h"
+#include "Pattern.h"
+
 #include <queue>
 
-#include "IPatternMatcher.h"
+namespace patterns {
+class PatternMatcher;
+}
 
-class PatternMatcher : public IPatternMatcher {
-
-    std::map<uint8_t, std::vector<pattern_ptr>> patterns;
-
-    std::map<uint8_t, std::vector<pattern_ptr>>::iterator currentPatternSet;
-
-    std::set<int> activePatterns;
+class patterns::PatternMatcher : public IPatternMatcher {
 
     std::vector<uint8_t> buffer;
 
-    int commandStartPosition{0};
+    std::queue<Package> recognized;
 
-    std::queue<CommandView> recognized;
+    std::shared_ptr<Pattern> pattern;
 
   public:
-    void addPattern(pattern_ptr pattern) override { patterns[pattern->getHeader()].push_back(std::move(pattern)); }
+    PatternMatcher(std::shared_ptr<Pattern> pattern);
 
-    bool getCommand(CommandView &command) override;
+    std::optional<Package> package() override;
 
     void reset() override;
 
     IPatternMatcher &operator<<(const std::vector<uint8_t> &segment) override;
 
-  private:
-    enum find_header_status { HEADER_FOUND, HEADER_NOT_FOUND };
-
-    void resetBuffer();
-
-    void fillActivePatternsWithCurrentSet();
-
-    Pattern::status checkActivePatterns(uint8_t);
-
-    find_header_status gotoNextHeader();
-
-    find_header_status findHeaderInSegment(std::vector<uint8_t>::const_iterator &begin,
-                                           std::vector<uint8_t>::const_iterator &end);
+  public:
+    void proccess(uint8_t byte);
 };
