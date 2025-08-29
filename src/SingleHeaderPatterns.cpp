@@ -10,11 +10,9 @@ SingleHeaderPatterns::SingleHeaderPatterns(uint8_t header_, std::string name_,
     for (auto p : patterns_) {
         if (p->header() == header()) {
             patterns.push_back(p);
+        } else {
+            throw std::invalid_argument{"Pattern with different header"};
         }
-    }
-
-    if (patterns.empty()) {
-        throw std::invalid_argument{"No patterns have such header"};
     }
 }
 
