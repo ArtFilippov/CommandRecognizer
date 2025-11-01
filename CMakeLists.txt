@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.29.0)
 
 set(CMAKE_SYSTEM_NAME Generic)
 
+get_filename_component(CMAKE_PREFIX_PATH
+  "${CMAKE_PREFIX_PATH}"
+  REALPATH
+)
+
 include(${CMAKE_PREFIX_PATH}/toolchain.cmake)
 
 include_directories(${CMAKE_PREFIX_PATH})

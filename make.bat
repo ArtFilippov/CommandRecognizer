@@ -1,4 +1,4 @@
-set workspaceDirectory="C:\Users\filippar\sharedVbox"
+set workspaceDirectory=%~dp0..\..
 
 if not exist %workspaceDirectory%\common\ (
     CALL git clone ssh://git@gitea:2222/filippar/libcomport.git  %workspaceDirectory%/libcomport
